@@ -6,10 +6,6 @@ export default function SignupScreen() {
     // Google authentication will be implemented later.
   };
 
-  const handleApple = () => {
-    // Apple authentication will be implemented later.
-  };
-
   const handleFacebook = () => {
     // Facebook authentication will be implemented later.
   };
@@ -49,19 +45,6 @@ export default function SignupScreen() {
 
           <Text style={styles.socialButtonText}>
             Continue with Google
-          </Text>
-        </Pressable>
-
-        <Pressable
-          style={styles.socialButton}
-          onPress={handleApple}
-        >
-          <View style={styles.iconContainer}>
-            <Text style={styles.appleIcon}>●</Text>
-          </View>
-
-          <Text style={styles.socialButtonText}>
-            Continue with Apple
           </Text>
         </Pressable>
 
@@ -205,11 +188,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#4285F4',
-  },
-
-  appleIcon: {
-    fontSize: 20,
-    color: '#000000',
   },
 
   facebookIcon: {
