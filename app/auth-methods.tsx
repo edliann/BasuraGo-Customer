@@ -22,7 +22,7 @@ export default function AuthMethodsScreen() {
 
         <Pressable
           style={styles.methodButton}
-          onPress={() => router.push('/email-auth')}
+          onPress={() => router.push('/email-signup')}
         >
           <Text style={styles.methodTitle}>
             Continue with Email

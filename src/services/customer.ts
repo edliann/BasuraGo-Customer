@@ -1,7 +1,7 @@
 import {
   doc,
   serverTimestamp,
-  setDoc,
+  writeBatch,
 } from 'firebase/firestore';
 
 import { firestore } from '@/services/firebase';
@@ -17,18 +17,41 @@ export async function createCustomerProfile({
   fullName,
   email,
 }: CreateCustomerProfileInput) {
+  const batch = writeBatch(firestore);
+
   const userRef = doc(
     firestore,
     'users',
     userId,
   );
 
-  await setDoc(userRef, {
+  const customerRef = doc(
+    firestore,
+    'customers',
+    userId,
+  );
+
+  const createdAt = serverTimestamp();
+  const updatedAt = serverTimestamp();
+
+  batch.set(userRef, {
     role: 'customer',
     status: 'active',
     fullName: fullName.trim(),
     email: email.trim().toLowerCase(),
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
+    createdAt,
+    updatedAt,
   });
+
+  batch.set(customerRef, {
+    fullName: fullName.trim(),
+    email: email.trim().toLowerCase(),
+    phoneNumber: '',
+    phoneVerified: false,
+    status: 'active',
+    createdAt,
+    updatedAt,
+  });
+
+  await batch.commit();
 }

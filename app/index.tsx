@@ -29,7 +29,7 @@ export default function Index() {
         return;
       }
 
-      router.replace('/auth');
+      router.replace('/signup');
     };
 
     checkStartup();

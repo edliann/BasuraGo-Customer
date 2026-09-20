@@ -47,7 +47,7 @@ export default function OnboardingScreen() {
       'true',
     );
 
-    router.replace('/auth');
+    router.replace('/signup');
   };
 
   return (
