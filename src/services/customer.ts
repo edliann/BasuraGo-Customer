@@ -60,6 +60,7 @@ export async function createCustomerProfile({
       email: email.trim().toLowerCase(),
       phoneNumber: '',
       phoneVerified: false,
+      onboardingCompleted: false,
       status: 'active',
       createdAt: now,
       updatedAt: now,

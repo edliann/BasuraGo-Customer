@@ -4,8 +4,10 @@ import { router } from 'expo-router';
 
 import LoadingScreen from '@/components/LoadingScreen';
 import { useAuth } from '@/contexts/AuthContext';
+import { getCustomerProfile } from '@/services/customerProfile';
 
-const ONBOARDING_KEY = '@basurago_onboarding_completed';
+const ONBOARDING_KEY =
+  '@basurago_onboarding_completed';
 
 export default function Index() {
   const { firebaseUser, loading } = useAuth();
@@ -15,24 +17,60 @@ export default function Index() {
       return;
     }
 
+    let active = true;
+
     const checkStartup = async () => {
-      const onboardingCompleted =
-        await AsyncStorage.getItem(ONBOARDING_KEY);
+      try {
+        const onboardingCompleted =
+          await AsyncStorage.getItem(
+            ONBOARDING_KEY,
+          );
 
-      if (!onboardingCompleted) {
-        router.replace('/onboarding');
-        return;
-      }
+        if (!active) {
+          return;
+        }
 
-      if (firebaseUser) {
+        if (!onboardingCompleted) {
+          router.replace('/onboarding');
+          return;
+        }
+
+        if (!firebaseUser) {
+          router.replace('/signup');
+          return;
+        }
+
+        const customerProfile =
+          await getCustomerProfile(
+            firebaseUser.uid,
+          );
+
+        if (!active) {
+          return;
+        }
+
+        if (
+          !customerProfile ||
+          !customerProfile.onboardingCompleted
+        ) {
+          router.replace('/profile-setup');
+          return;
+        }
+
         router.replace('/home');
-        return;
+      } catch (error) {
+        console.error(
+          'Failed to check customer startup state:',
+          error,
+        );
       }
-
-      router.replace('/signup');
     };
 
     checkStartup();
+
+    return () => {
+      active = false;
+    };
   }, [firebaseUser, loading]);
 
   return <LoadingScreen />;

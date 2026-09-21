@@ -32,3 +32,17 @@ export interface CustomerProfile {
   createdAt?: unknown;
   updatedAt?: unknown;
 }
+
+export interface CustomerProfile {
+  id: string;
+  userId: string;
+  fullName: string;
+  email?: string;
+  phoneNumber?: string;
+  phoneVerified: boolean;
+  onboardingCompleted: boolean;
+  status: AccountStatus;
+  defaultAddressId?: string;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+}
