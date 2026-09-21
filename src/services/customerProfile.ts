@@ -29,12 +29,15 @@ export async function getCustomerProfile(
   } as CustomerProfile;
 }
 
+interface CompleteCustomerOnboardingInput {
+  fullName: string;
+  phoneNumber: string;
+  phoneCountryCode: string;
+}
+
 export async function completeCustomerOnboarding(
   userId: string,
-  data: {
-    fullName: string;
-    phoneNumber: string;
-  },
+  data: CompleteCustomerOnboardingInput,
 ) {
   const customerRef = doc(
     firestore,
@@ -45,6 +48,8 @@ export async function completeCustomerOnboarding(
   await updateDoc(customerRef, {
     fullName: data.fullName.trim(),
     phoneNumber: data.phoneNumber.trim(),
+    phoneCountryCode:
+      data.phoneCountryCode.trim(),
     onboardingCompleted: true,
   });
 }

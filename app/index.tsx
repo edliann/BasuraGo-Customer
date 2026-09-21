@@ -57,6 +57,11 @@ export default function Index() {
           return;
         }
 
+        if (!customerProfile.phoneVerified) {
+          router.replace('/phone-verification');
+          return;
+        }
+
         router.replace('/home');
       } catch (error) {
         console.error(
