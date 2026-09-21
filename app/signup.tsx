@@ -1,9 +1,35 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { useState } from 'react';
+import { signInWithGoogle } from '@/services/googleAuth';
 
 export default function SignupScreen() {
-  const handleGoogle = () => {
-    // Google authentication will be implemented later.
+const [googleLoading, setGoogleLoading] =
+  useState(false);
+
+  const handleGoogle = async () => {
+    if (googleLoading) {
+      return;
+    }
+
+    try {
+      setGoogleLoading(true);
+
+      const user = await signInWithGoogle();
+
+      if (!user) {
+        return;
+      }
+
+      router.replace('/');
+    } catch (error) {
+      console.error(
+        'Google sign-in error:',
+        error,
+      );
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   const handleFacebook = () => {
@@ -36,15 +62,21 @@ export default function SignupScreen() {
         </Text>
 
         <Pressable
-          style={styles.socialButton}
+          style={[
+            styles.socialButton,
+            googleLoading && styles.disabledButton,
+          ]}
           onPress={handleGoogle}
+          disabled={googleLoading}
         >
           <View style={styles.iconContainer}>
             <Text style={styles.googleIcon}>G</Text>
           </View>
 
           <Text style={styles.socialButtonText}>
-            Continue with Google
+            {googleLoading
+              ? 'Signing in...'
+              : 'Continue with Google'}
           </Text>
         </Pressable>
 
@@ -226,5 +258,9 @@ const styles = StyleSheet.create({
   termsLink: {
     color: '#1F6B3A',
     textDecorationLine: 'underline',
+  },
+
+  disabledButton: {
+    opacity: 0.6,
   },
 });

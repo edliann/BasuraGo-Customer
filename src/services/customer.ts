@@ -1,5 +1,6 @@
 import {
   doc,
+  getDoc,
   serverTimestamp,
   writeBatch,
 } from 'firebase/firestore';
@@ -17,8 +18,6 @@ export async function createCustomerProfile({
   fullName,
   email,
 }: CreateCustomerProfileInput) {
-  const batch = writeBatch(firestore);
-
   const userRef = doc(
     firestore,
     'users',
@@ -31,27 +30,44 @@ export async function createCustomerProfile({
     userId,
   );
 
-  const createdAt = serverTimestamp();
-  const updatedAt = serverTimestamp();
+  const [
+    userSnapshot,
+    customerSnapshot,
+  ] = await Promise.all([
+    getDoc(userRef),
+    getDoc(customerRef),
+  ]);
 
-  batch.set(userRef, {
-    role: 'customer',
-    status: 'active',
-    fullName: fullName.trim(),
-    email: email.trim().toLowerCase(),
-    createdAt,
-    updatedAt,
-  });
+  const batch = writeBatch(firestore);
+  const now = serverTimestamp();
 
-  batch.set(customerRef, {
-    fullName: fullName.trim(),
-    email: email.trim().toLowerCase(),
-    phoneNumber: '',
-    phoneVerified: false,
-    status: 'active',
-    createdAt,
-    updatedAt,
-  });
+  // Only CREATE the users document if it doesn't exist.
+  if (!userSnapshot.exists()) {
+    batch.set(userRef, {
+      role: 'customer',
+      status: 'active',
+      fullName: fullName.trim(),
+      email: email.trim().toLowerCase(),
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
 
-  await batch.commit();
+  // Only CREATE the customers document if it doesn't exist.
+  if (!customerSnapshot.exists()) {
+    batch.set(customerRef, {
+      fullName: fullName.trim(),
+      email: email.trim().toLowerCase(),
+      phoneNumber: '',
+      phoneVerified: false,
+      status: 'active',
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+
+  // Nothing to write if both documents already exist.
+  if (!userSnapshot.exists() || !customerSnapshot.exists()) {
+    await batch.commit();
+  }
 }
