@@ -1,20 +1,19 @@
 import {
-  connectFunctionsEmulator,
   getFunctions,
   httpsCallable,
 } from 'firebase/functions';
 
 import firebaseApp from '@/services/firebase';
 
-const functions = getFunctions(firebaseApp);
-
-if (__DEV__) {
-  connectFunctionsEmulator(functions, '192.168.1.13', 5001);
-}
+const functions = getFunctions(
+  firebaseApp,
+  'us-central1',
+);
 
 interface RequestVerificationResponse {
   verificationId: string;
   expiresInSeconds: number;
+  resendAvailableInSeconds: number;
 }
 
 interface ConfirmVerificationResponse {
@@ -25,7 +24,7 @@ export async function requestPhoneVerification(
   phoneNumber: string,
 ): Promise<RequestVerificationResponse> {
   const callable = httpsCallable<
-    { phoneNumber: string },
+    {phoneNumber: string},
     RequestVerificationResponse
   >(
     functions,
