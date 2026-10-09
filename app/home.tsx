@@ -28,6 +28,13 @@ export default function HomeScreen() {
 
       <Pressable
         style={styles.button}
+        onPress={() => router.push('/schedule-pickup')}
+      >
+        <Text style={styles.buttonText}>Schedule a Pickup</Text>
+      </Pressable>
+
+      <Pressable
+        style={styles.logoutButton}
         onPress={handleLogout}
       >
         <Text style={styles.buttonText}>
@@ -63,6 +70,16 @@ const styles = StyleSheet.create({
   },
 
   button: {
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 10,
+    backgroundColor: '#1f7a3f',
+    marginBottom: 12,
+  },
+
+  logoutButton: {
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 10,
