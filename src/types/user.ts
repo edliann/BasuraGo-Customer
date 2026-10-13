@@ -26,6 +26,7 @@ export interface CustomerProfile {
   fullName: string;
   email?: string;
   phoneNumber?: string;
+  phoneCountryCode?: string;
   phoneVerified: boolean;
   onboardingCompleted: boolean;
   status: AccountStatus;

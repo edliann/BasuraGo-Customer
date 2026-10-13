@@ -53,3 +53,23 @@ export async function completeCustomerOnboarding(
     onboardingCompleted: true,
   });
 }
+
+
+interface UpdateCustomerProfileInput {
+  fullName: string;
+  phoneNumber: string;
+  phoneCountryCode: string;
+}
+
+export async function updateCustomerProfile(
+  userId: string,
+  data: UpdateCustomerProfileInput,
+) {
+  const customerRef = doc(firestore, 'customers', userId);
+
+  await updateDoc(customerRef, {
+    fullName: data.fullName.trim(),
+    phoneNumber: data.phoneNumber.trim(),
+    phoneCountryCode: data.phoneCountryCode.trim(),
+  });
+}
