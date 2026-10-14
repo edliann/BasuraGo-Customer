@@ -11,65 +11,47 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { Image } from 'react-native';
+import { useEffect, useState } from 'react';
+import { getCustomerProfile } from '@/services/customerProfile';
 
 import BottomNav from '@/components/BottomNav';
 
 import styles from './home.styles';
 
-function NavItem({
-  label,
-  symbol,
-  active,
-  onPress,
-}: {
-  label: string;
-  symbol: string;
-  active?: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.navItem,
-        pressed && styles.pressed,
-      ]}
-    >
-      <View
-        style={[
-          styles.navIconWrap,
-          active && styles.navIconWrapActive,
-        ]}
-      >
-        <Text
-          style={[
-            styles.navSymbol,
-            active && styles.navSymbolActive,
-          ]}
-        >
-          {symbol}
-        </Text>
-      </View>
-
-      <Text
-        style={[
-          styles.navLabel,
-          active && styles.navLabelActive,
-        ]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 export default function HomeScreen() {
   const { firebaseUser } = useAuth();
 
-  const customerName =
-    firebaseUser?.displayName?.trim() || 'Customer';
+  const [customerName, setCustomerName] = useState(
+    firebaseUser?.displayName?.trim() || 'Customer'
+  );
+
+  useEffect(() => {
+    if (!firebaseUser?.uid) return;
+
+    let isActive = true;
+
+    const loadCustomerProfile = async () => {
+      try {
+        const profile = await getCustomerProfile(firebaseUser.uid);
+
+        if (!isActive) return;
+
+        setCustomerName(
+          profile?.fullName?.trim() ||
+            firebaseUser.displayName?.trim() ||
+            'Customer'
+        );
+      } catch (error) {
+        console.error('Failed to load customer profile:', error);
+      }
+    };
+
+    loadCustomerProfile();
+
+    return () => {
+      isActive = false;
+    };
+  }, [firebaseUser?.uid, firebaseUser?.displayName]);
 
   return (
     <SafeAreaView
@@ -86,61 +68,31 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          <View style={styles.header}>
-            <View style={styles.brandRow}>
-              <Image
-                source={require('../assets/images/basurago-logo.png')}
-                style={styles.brandLogo}
-                resizeMode="contain"
-                accessibilityLabel="BasuraGo — Cleaner Communities, Brighter Tomorrows"
-              />
 
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Settings"
-                onPress={() => router.push('/settings')}
-                style={({ pressed }) => [
-                  styles.headerAction,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={styles.headerActionText}>⚙</Text>
-              </Pressable>
-            </View>
-
-
-            <View style={styles.greeting}>
-              <Text style={styles.greetingEyebrow}>
-                WELCOME TO BASURAGO
-              </Text>
-              <Text style={styles.greetingTitle}>
-                Hello, {customerName.split(' ')[0]}!
-              </Text>
-              <Text style={styles.greetingSubtitle}>
-                Let's make your community cleaner.
-              </Text>
-            </View>
-
-            <View style={styles.locationCard}>
-              <View style={styles.locationIcon}>
-                <Text style={styles.locationEmoji}>⌖</Text>
-              </View>
-
-              <View style={styles.locationContent}>
-                <Text style={styles.locationLabel}>
-                  PICKUP LOCATION
-                </Text>
-                <Text style={styles.locationTitle}>
-                  Your pickup address
-                </Text>
-                <Text style={styles.locationHint}>
-                  Set your address when booking
-                </Text>
-              </View>
-
-              <Text style={styles.chevron}>›</Text>
-            </View>
+        <View style={styles.header}>
+          <View style={styles.brandRow}>
+            <Image
+              source={require('../assets/images/basurago-logo.png')}
+              style={styles.brandLogo}
+              resizeMode="contain"
+              accessibilityLabel="BasuraGo logo"
+            />
           </View>
+
+          <View style={styles.greeting}>
+            <Text style={styles.greetingEyebrow}>
+              WELCOME TO BASURAGO
+            </Text>
+
+            <Text style={styles.greetingTitle}>
+              Hello, {customerName}!
+            </Text>
+
+            <Text style={styles.greetingSubtitle}>
+              Let's make your community cleaner.
+            </Text>
+          </View>
+        </View>
 
           <View style={styles.body}>
             <View style={styles.heroCard}>

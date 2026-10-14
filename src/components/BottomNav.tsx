@@ -1,22 +1,20 @@
 
 import { router, usePathname } from 'expo-router';
-import {
-  Pressable,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import RemixIcon from 'react-native-remix-icon';
+import type { IconName } from 'react-native-remix-icon';
 
 import styles from './BottomNav.styles';
 
 function NavItem({
   label,
-  symbol,
+  icon,
   active,
   onPress,
 }: {
   label: string;
-  symbol: string;
+  icon: IconName;
   active: boolean;
   onPress: () => void;
 }) {
@@ -37,14 +35,11 @@ function NavItem({
           active && styles.navIconWrapActive,
         ]}
       >
-        <Text
-          style={[
-            styles.navSymbol,
-            active && styles.navSymbolActive,
-          ]}
-        >
-          {symbol}
-        </Text>
+        <RemixIcon
+          name={icon}
+          size={23}
+          color={active ? '#176744' : '#8B9690'}
+        />
       </View>
 
       <Text
@@ -78,21 +73,21 @@ export default function BottomNav() {
       <View style={styles.bottomNav}>
         <NavItem
           label="Home"
-          symbol="⌂"
+          icon="home-5-line"
           active={pathname === '/home'}
           onPress={() => router.replace('/home')}
         />
 
         <NavItem
           label="Orders"
-          symbol="▤"
+          icon="file-list-3-line"
           active={pathname.startsWith('/orders')}
           onPress={() => router.push('/orders')}
         />
 
         <NavItem
           label="Account"
-          symbol="♙"
+          icon="user-3-line"
           active={pathname === '/account'}
           onPress={() => router.replace('/account')}
         />

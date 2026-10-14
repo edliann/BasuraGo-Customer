@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Alert,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,7 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { logoutCustomer } from '@/services/auth';
 import { getCustomerProfile } from '@/services/customerProfile';
 
-import { styles } from './account.styles';
+import { styles } from '@/styles/account.styles';
 
 export default function AccountScreen() {
     const { firebaseUser } = useAuth();
@@ -123,11 +124,6 @@ export default function AccountScreen() {
             <Text style={styles.profileEmail}>
               {email}
             </Text>
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>
-                BasuraGo Customer
-              </Text>
-            </View>
           </View>
         </View>
 
@@ -137,7 +133,7 @@ export default function AccountScreen() {
 
         <View style={styles.menuCard}>
           <MenuRow
-            icon="👤"
+            image={require('../assets/images/edit-profile-icon.png')}
             title="Edit profile"
             subtitle="Manage your personal details"
             onPress={() => router.push('/edit-profile')}
@@ -146,7 +142,7 @@ export default function AccountScreen() {
           <MenuDivider />
 
           <MenuRow
-            icon="📍"
+            image={require('../assets/images/pickup-address-icon.png')}
             title="Pickup address"
             subtitle="Manage your collection location"
             onPress={() =>
@@ -160,7 +156,7 @@ export default function AccountScreen() {
           <MenuDivider />
 
           <MenuRow
-            icon="📱"
+            image={require('../assets/images/phone-verification-icon.png')}
             title="Phone verification"
             subtitle="Verify your mobile number"
             onPress={() => router.push('/phone-verification')}
@@ -173,7 +169,7 @@ export default function AccountScreen() {
 
         <View style={styles.menuCard}>
           <MenuRow
-            icon="🔔"
+            image={require('../assets/images/notification-icon.png')}
             title="Notifications"
             subtitle="Manage pickup updates"
             onPress={() =>
@@ -187,7 +183,7 @@ export default function AccountScreen() {
           <MenuDivider />
 
           <MenuRow
-            icon="❓"
+            image={require('../assets/images/help-support-icon.png')}
             title="Help and support"
             subtitle="Get help with BasuraGo"
             onPress={() =>
@@ -201,7 +197,7 @@ export default function AccountScreen() {
           <MenuDivider />
 
           <MenuRow
-            icon="🔒"
+            image={require('../assets/images/privacy-icon.png')}
             title="Privacy"
             subtitle="Your data and account privacy"
             onPress={() =>
@@ -267,15 +263,16 @@ export default function AccountScreen() {
   );
 }
 
+
 type MenuRowProps = {
-  icon: string;
+  image: number;
   title: string;
   subtitle: string;
   onPress: () => void;
 };
 
 function MenuRow({
-  icon,
+  image,
   title,
   subtitle,
   onPress,
@@ -290,7 +287,12 @@ function MenuRow({
       ]}
     >
       <View style={styles.menuIcon}>
-        <Text style={styles.menuIconText}>{icon}</Text>
+        <Image
+          source={image}
+          style={styles.menuIconImage}
+          resizeMode="contain"
+          accessibilityIgnoresInvertColors
+        />
       </View>
 
       <View style={styles.menuTextContainer}>

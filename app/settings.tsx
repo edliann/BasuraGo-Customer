@@ -11,11 +11,46 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { logoutCustomer } from '@/services/auth';
+import { useEffect, useState } from 'react';
+import { getCustomerProfile } from '@/services/customerProfile';
 
 import styles from './settings.styles';
 
 export default function SettingsScreen() {
   const { firebaseUser } = useAuth();
+
+  const [customerName, setCustomerName] = useState(
+    firebaseUser?.displayName?.trim() || 'BasuraGo Customer'
+  );
+
+  useEffect(() => {
+    if (!firebaseUser?.uid) return;
+
+    let isActive = true;
+
+    const loadCustomerProfile = async () => {
+      try {
+        const profile = await getCustomerProfile(firebaseUser.uid);
+
+        if (!isActive) return;
+
+        setCustomerName(
+          profile?.fullName?.trim() ||
+            firebaseUser.displayName?.trim() ||
+            'BasuraGo Customer'
+        );
+      } catch (error) {
+        console.error('Failed to load customer profile:', error);
+      }
+    };
+
+    loadCustomerProfile();
+
+    return () => {
+      isActive = false;
+    };
+  }, [firebaseUser?.uid, firebaseUser?.displayName]);
+
 
   const handleLogout = () => {
     Alert.alert(
@@ -61,15 +96,13 @@ export default function SettingsScreen() {
         <View style={styles.profileCard}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
-              {(firebaseUser?.displayName || 'C')
-                .charAt(0)
-                .toUpperCase()}
+              {customerName.charAt(0).toUpperCase()}
             </Text>
           </View>
 
           <View style={styles.profileInfo}>
             <Text style={styles.profileName}>
-              {firebaseUser?.displayName || 'Customer'}
+              {customerName}
             </Text>
             <Text style={styles.email}>
               {firebaseUser?.email || ''}

@@ -18,7 +18,7 @@ import {
   updateCustomerProfile,
 } from '@/services/customerProfile';
 
-import { styles } from './edit-profile.styles';
+import { styles } from '@/styles/edit-profile.styles';
 
 export default function EditProfileScreen() {
   const { firebaseUser, loading: authLoading } = useAuth();

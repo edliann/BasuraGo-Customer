@@ -220,5 +220,8 @@ activeNav: {
   color: '#176744',
   fontWeight: '800',
 },
-
+menuIconImage: {
+  width: 26,
+  height: 26,
+},
 });

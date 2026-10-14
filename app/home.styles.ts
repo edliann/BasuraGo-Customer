@@ -66,21 +66,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  headerAction: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF20',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  headerActionText: {
-    color: colors.white,
-    fontSize: 25,
-    fontWeight: '600',
-  },
-
   greeting: {
     marginTop: 30,
     marginBottom: 23,
@@ -106,61 +91,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 7,
     lineHeight: 21,
-  },
-
-  // Pickup location
-  locationCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: 17,
-    padding: 14,
-    gap: 12,
-  },
-
-  locationIcon: {
-    width: 43,
-    height: 43,
-    borderRadius: 13,
-    backgroundColor: colors.paleGreen,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  locationEmoji: {
-    color: colors.primary,
-    fontSize: 27,
-    fontWeight: '600',
-  },
-
-  locationContent: {
-    flex: 1,
-  },
-
-  locationLabel: {
-    color: colors.secondaryText,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.9,
-    marginBottom: 4,
-  },
-
-  locationTitle: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-
-  locationHint: {
-    color: colors.secondaryText,
-    fontSize: 11,
-    marginTop: 4,
-  },
-
-  chevron: {
-    color: colors.primary,
-    fontSize: 27,
-    marginLeft: 2,
   },
 
   // Main content
@@ -564,8 +494,8 @@ navFeather: {
 },
 
 brandLogo: {
-  width: 245,
-  height: 76,
+  width: 103,
+  height: 34,
   flexShrink: 1,
 },
 
