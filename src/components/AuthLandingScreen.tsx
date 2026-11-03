@@ -1,26 +1,146 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  StyleSheet,
+  Image,
+  Text,
+  View,
+} from 'react-native';
 import { router } from 'expo-router';
+import { useState } from 'react';
+
+import {
+  clearPendingFacebookCredential,
+  getFacebookAuthErrorCode,
+  signInWithFacebook,
+} from '@/services/facebookAuth';
+import {
+  getGoogleSignInErrorDetails,
+  signInWithGoogle,
+} from '@/services/googleAuth';
+
+import GoogleIcon from '@/components/GoogleIcon';
+import FacebookIcon from '@/components/FacebookIcon';
 
 export default function AuthLandingScreen() {
-  const handleGoogle = () => {
-    // Google authentication will be implemented later.
+  const [loadingProvider, setLoadingProvider] = useState<
+    'google' | 'facebook' | null
+  >(null);
+
+  const handleGoogle = async () => {
+    if (loadingProvider) return;
+
+    setLoadingProvider('google');
+
+    try {
+      const user = await signInWithGoogle();
+
+      if (user) {
+        router.replace('/');
+      }
+    } catch (error) {
+      if (__DEV__) {
+        console.error(
+          '[Google sign-in] auth landing screen caught error',
+          getGoogleSignInErrorDetails(error),
+        );
+      }
+
+      Alert.alert(
+        'Google sign-in failed',
+        'We could not sign you in with Google. Please try again.',
+      );
+    } finally {
+      setLoadingProvider(null);
+    }
+  };
+
+  const handleFacebook = async () => {
+    console.log('[Facebook diagnostic] handleFacebook entered');
+
+    if (loadingProvider) return;
+
+    setLoadingProvider('facebook');
+
+    try {
+      console.log('[Facebook diagnostic] Calling signInWithFacebook');
+      const user = await signInWithFacebook();
+
+      if (user) {
+        router.replace('/');
+      }
+    } catch (error) {
+      const code = getFacebookAuthErrorCode(error);
+      console.warn('Facebook sign-in failed:', code || 'unknown error');
+
+      if (
+        code === 'auth/account-exists-with-different-credential' ||
+        code === 'auth/email-already-in-use'
+      ) {
+        Alert.alert(
+          'Sign in to your existing account',
+          'Sign in with the email and password you already use for this account. After Firebase confirms that sign-in, Facebook will be linked to that same account.',
+          [
+            {
+              text: 'Not now',
+              style: 'cancel',
+              onPress: clearPendingFacebookCredential,
+            },
+            {
+              text: 'Continue',
+              onPress: () =>
+                router.push({
+                  pathname: '/login',
+                  params: { linkFacebook: '1' },
+                }),
+            },
+          ],
+        );
+      } else if (code === 'auth/credential-already-in-use') {
+        clearPendingFacebookCredential();
+        Alert.alert(
+          'Facebook account already linked',
+          'This Facebook account is already linked to another account. Sign in to that account to continue; accounts will not be merged automatically.',
+        );
+      } else if (code === 'auth/invalid-credential') {
+        Alert.alert(
+          'Facebook sign-in expired',
+          'Please start Facebook sign-in again.',
+        );
+      } else if (code === 'auth/network-request-failed') {
+        Alert.alert(
+          'Connection problem',
+          'Facebook sign-in could not reach Firebase. Check your connection and try again.',
+        );
+      } else {
+        Alert.alert(
+          'Facebook sign-in failed',
+          'We could not sign you in with Facebook. Please try again.',
+        );
+      }
+    } finally {
+      setLoadingProvider(null);
+    }
   };
 
   const handleApple = () => {
-    // Apple authentication will be implemented later.
-  };
-
-  const handleFacebook = () => {
-    // Facebook authentication will be implemented later.
+    Alert.alert(
+      'Coming soon',
+      'Apple sign-in is not available yet.',
+    );
   };
 
   return (
     <View style={styles.container}>
       {/* Top visual area */}
       <View style={styles.hero}>
-        <View style={styles.logoCircle}>
-          <Text style={styles.logoText}>BG</Text>
-        </View>
+        <Image
+          source={require('../../assets/hero/basurago-logo.png')}
+          style={styles.heroLogo}
+          resizeMode="contain"
+          accessibilityLabel="BasuraGo logo"
+        />
 
         <Text style={styles.heroTitle}>
           Welcome to BasuraGo
@@ -30,6 +150,7 @@ export default function AuthLandingScreen() {
           Smarter waste collection, right at your doorstep.
         </Text>
       </View>
+
 
       {/* Bottom authentication sheet */}
       <View style={styles.sheet}>
@@ -46,12 +167,14 @@ export default function AuthLandingScreen() {
           style={styles.socialButton}
           onPress={handleGoogle}
         >
-          <View style={styles.iconContainer}>
-            <Text style={styles.googleIcon}>G</Text>
-          </View>
+        <View style={styles.iconContainer}>
+          <GoogleIcon />
+        </View>
 
           <Text style={styles.socialButtonText}>
-            Continue with Google
+            {loadingProvider === 'google'
+              ? 'Signing in...'
+              : 'Continue with Google'}
           </Text>
         </Pressable>
 
@@ -73,13 +196,16 @@ export default function AuthLandingScreen() {
         <Pressable
           style={styles.socialButton}
           onPress={handleFacebook}
+          disabled={loadingProvider !== null}
         >
-          <View style={styles.iconContainer}>
-            <Text style={styles.facebookIcon}>f</Text>
-          </View>
+        <View style={styles.iconContainer}>
+          <FacebookIcon />
+        </View>
 
           <Text style={styles.socialButtonText}>
-            Continue with Facebook
+            {loadingProvider === 'facebook'
+              ? 'Signing in...'
+              : 'Continue with Facebook'}
           </Text>
         </Pressable>
 
@@ -253,4 +379,12 @@ const styles = StyleSheet.create({
     color: '#1F6B3A',
     textDecorationLine: 'underline',
   },
+
+  heroLogo: {
+    width: '100%',
+    maxWidth: 340,
+    height: 130,
+    marginBottom: 24,
+  },
+
 });

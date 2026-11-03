@@ -66,6 +66,15 @@ navIconWrapActive: {
   backgroundColor: '#E8F5EC',
 },
 
+navImage: {
+  width: 24,
+  height: 24,
+},
+
+navImageInactive: {
+  opacity: 0.58,
+},
+
 navSymbol: {
   color: '#8B9690',
   fontSize: 25,

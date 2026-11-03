@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState } from 'react';
 import {
+  Alert,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -12,16 +14,19 @@ const ONBOARDING_KEY = '@basurago_onboarding_completed';
 
 const slides = [
   {
+    image: require('../../assets/onboarding/slide-1.png'),
     title: 'Welcome to BasuraGo',
     description:
       'A convenient way to request waste collection from your home.',
   },
   {
+    image: require('../../assets/onboarding/slide-2.png'),
     title: 'Request a Pickup',
     description:
       'Choose your pickup location and tell us what type of waste you need collected.',
   },
   {
+    image: require('../../assets/onboarding/slide-3.png'),
     title: 'Track Your Pickup',
     description:
       'Follow your pickup request and stay updated as your rider completes the collection.',
@@ -30,6 +35,7 @@ const slides = [
 
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [savingCompletion, setSavingCompletion] = useState(false);
 
   const currentSlide = slides[currentIndex];
 
@@ -42,21 +48,33 @@ export default function OnboardingScreen() {
       return;
     }
 
-    await AsyncStorage.setItem(
-      ONBOARDING_KEY,
-      'true',
-    );
+    if (savingCompletion) return;
 
-    router.replace('/signup');
+    setSavingCompletion(true);
+    try {
+      await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
+      router.replace('/signup');
+    } catch (error) {
+      console.error('[Onboarding] could not save completion state', error);
+      Alert.alert(
+        'Could not continue',
+        'Please try again. Your onboarding progress has not been saved.',
+      );
+    } finally {
+      setSavingCompletion(false);
+    }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.content}>
         <View style={styles.illustration}>
-          <Text style={styles.illustrationText}>
-            BasuraGo
-          </Text>
+          <Image
+            source={currentSlide.image}
+            style={styles.illustrationImage}
+            resizeMode="contain"
+            accessibilityLabel={currentSlide.title}
+          />
         </View>
 
         <Text style={styles.title}>
@@ -85,9 +103,10 @@ export default function OnboardingScreen() {
         <Pressable
           style={styles.button}
           onPress={handleNext}
+          disabled={savingCompletion}
         >
           <Text style={styles.buttonText}>
-            {isLastSlide ? 'Get Started' : 'Next'}
+            {savingCompletion ? 'Saving...' : isLastSlide ? 'Get Started' : 'Next'}
           </Text>
         </Pressable>
       </View>
@@ -111,18 +130,16 @@ const styles = StyleSheet.create({
   },
 
   illustration: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
+    width: '100%',
+    height: 280,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 48,
-    backgroundColor: '#E8F5E9',
+    marginBottom: 40,
   },
 
-  illustrationText: {
-    fontSize: 28,
-    fontWeight: '800',
+  illustrationImage: {
+    width: '100%',
+    height: '100%',
   },
 
   title: {

@@ -1,7 +1,23 @@
+# Existing rules
 .git
 node_modules
 .expo
 dist
 *.log
 
+# Keep local secrets out of EAS build archives
+.env
+.env.local
+.env.*.local
+
+# Use Expo CNG to generate native projects during cloud builds
+/android
+/ios
+
 !google-services.json
+
+# Exclude machine-specific Android build artifacts
+android/.gradle/
+android/build/
+android/app/build/
+android/app/.cxx/

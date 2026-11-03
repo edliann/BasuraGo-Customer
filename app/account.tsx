@@ -1,55 +1,75 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   Alert,
   Image,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { logoutCustomer } from '@/services/auth';
 import { getCustomerProfile } from '@/services/customerProfile';
 
 import { styles } from '@/styles/account.styles';
+import BottomNav from '@/components/BottomNav';
 
 export default function AccountScreen() {
     const { firebaseUser } = useAuth();
 
     const [displayName, setName] = useState('BasuraGo Customer');
+    const [phoneVerified, setPhoneVerified] = useState<boolean | null>(null);
+    const [refreshing, setRefreshing] = useState(false);
+    const [refreshError, setRefreshError] = useState('');
+    const profileRequestInFlight = useRef(false);
+    const profileRequestSequence = useRef(0);
     const email = firebaseUser?.email ?? '';
 
-    useEffect(() => {
-    if (!firebaseUser?.uid) return;
+    const loadCustomerProfile = useCallback(async (isRefresh = false) => {
+      if (!firebaseUser?.uid || profileRequestInFlight.current) return;
+      profileRequestInFlight.current = true;
+      const requestId = ++profileRequestSequence.current;
+      if (isRefresh) {
+        setRefreshing(true);
+        setRefreshError('');
+      }
 
-    let isActive = true;
-
-    const loadCustomerProfile = async () => {
-        try {
+      try {
         const profile = await getCustomerProfile(firebaseUser.uid);
-
-        if (!isActive) return;
-
+        if (requestId !== profileRequestSequence.current) return;
         setName(
-            profile?.fullName?.trim() ||
-            firebaseUser.displayName?.trim() ||
-            'BasuraGo Customer'
+          profile?.fullName?.trim() ||
+          firebaseUser.displayName?.trim() ||
+          'BasuraGo Customer'
         );
-        } catch (error) {
+        setPhoneVerified(profile?.phoneVerified === true);
+        setRefreshError('');
+      } catch (error) {
         console.error('Failed to load customer profile:', error);
+        if (requestId === profileRequestSequence.current && isRefresh) {
+          setRefreshError('Your profile could not be refreshed. Showing the last loaded data.');
         }
-    };
+      } finally {
+        if (requestId === profileRequestSequence.current) {
+          profileRequestInFlight.current = false;
+          if (isRefresh) setRefreshing(false);
+        }
+      }
+    }, [firebaseUser]);
 
-    loadCustomerProfile();
-
-    return () => {
-        isActive = false;
-    };
-    }, [firebaseUser?.uid, firebaseUser?.displayName]);
+    useFocusEffect(useCallback(() => {
+      void loadCustomerProfile();
+      return () => {
+        profileRequestSequence.current += 1;
+        profileRequestInFlight.current = false;
+        setRefreshing(false);
+      };
+    }, [loadCustomerProfile]));
 
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -89,25 +109,29 @@ export default function AccountScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => void loadCustomerProfile(true)}
+            tintColor="#176744"
+            colors={['#176744']}
+          />
+        }
       >
+        {refreshError ? (
+          <Text accessibilityRole="alert" style={styles.refreshError}>
+            {refreshError}
+          </Text>
+        ) : null}
         <View style={styles.header}>
           <View>
             <Text style={styles.eyebrow}>BASURAGO ACCOUNT</Text>
             <Text style={styles.title}>My Account</Text>
           </View>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Open settings"
-            onPress={() => router.push('/settings')}
-            style={styles.settingsButton}
-          >
-            <Text style={styles.settingsIcon}>⚙</Text>
-          </Pressable>
         </View>
 
         <View style={styles.profileCard}>
@@ -145,12 +169,7 @@ export default function AccountScreen() {
             image={require('../assets/images/pickup-address-icon.png')}
             title="Pickup address"
             subtitle="Manage your collection location"
-            onPress={() =>
-              Alert.alert(
-                'Pickup address',
-                'Address management will be added next.',
-              )
-            }
+            onPress={() => router.push('/pickup-addresses')}
           />
 
           <MenuDivider />
@@ -158,8 +177,19 @@ export default function AccountScreen() {
           <MenuRow
             image={require('../assets/images/phone-verification-icon.png')}
             title="Phone verification"
-            subtitle="Verify your mobile number"
-            onPress={() => router.push('/phone-verification')}
+            subtitle={
+              phoneVerified === true
+                ? 'Your phone number is verified'
+                : phoneVerified === false
+                  ? 'Verify your mobile number'
+                  : 'Check your phone verification status'
+            }
+            onPress={() =>
+              router.push({
+                pathname: '/phone-verification',
+                params: { source: 'account' },
+              })
+            }
           />
         </View>
 
@@ -186,12 +216,7 @@ export default function AccountScreen() {
             image={require('../assets/images/help-support-icon.png')}
             title="Help and support"
             subtitle="Get help with BasuraGo"
-            onPress={() =>
-              Alert.alert(
-                'Help and support',
-                'Support options will be available here.',
-              )
-            }
+            onPress={() => router.push('/help-support')}
           />
 
           <MenuDivider />
@@ -200,12 +225,7 @@ export default function AccountScreen() {
             image={require('../assets/images/privacy-icon.png')}
             title="Privacy"
             subtitle="Your data and account privacy"
-            onPress={() =>
-              Alert.alert(
-                'Privacy',
-                'The privacy policy will be added before launch.',
-              )
-            }
+            onPress={() => router.push('/privacy')}
           />
         </View>
 
@@ -228,37 +248,7 @@ export default function AccountScreen() {
           BasuraGo · Cleaner Communities, Brighter Tomorrows
         </Text>
       </ScrollView>
-      <View style={styles.bottomNavContainer}>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.replace('/home')}
-          style={styles.navItem}
-        >
-          <Text style={styles.navIcon}>⌂</Text>
-          <Text style={styles.navLabel}>Home</Text>
-        </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.replace('/orders')}
-          style={styles.navItem}
-        >
-          <Text style={styles.navIcon}>▤</Text>
-          <Text style={styles.navLabel}>Orders</Text>
-        </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ selected: true }}
-          onPress={() => router.replace('/account')}
-          style={styles.navItem}
-        >
-          <Text style={[styles.navIcon, styles.activeNav]}>●</Text>
-          <Text style={[styles.navLabel, styles.activeNav]}>
-            Account
-          </Text>
-        </Pressable>
-      </View>
+      <BottomNav />
     </SafeAreaView>
   );
 }

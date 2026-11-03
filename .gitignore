@@ -45,3 +45,12 @@ yarn-error.*
 # google
 google-services.json
 expo-config.json
+
+# facebook
+credentials.json
+
+# EAS diagnostic inspection folders
+.eas-inspect-*/
+
+# Temporary app configuration backup
+app.json.backup

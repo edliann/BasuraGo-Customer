@@ -22,8 +22,8 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: colors.primary,
     paddingHorizontal: 22,
-    paddingTop: 18,
-    paddingBottom: 26,
+    paddingTop: 4,
+    paddingBottom: 22,
     borderBottomLeftRadius: 26,
     borderBottomRightRadius: 26,
   },
@@ -299,6 +299,92 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
+  pickupStateCard: {
+    minHeight: 116,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+
+  pickupStateText: {
+    color: colors.secondaryText,
+    fontSize: 13,
+  },
+
+  pickupWarning: {
+    color: '#A23B32',
+    fontSize: 12,
+    lineHeight: 17,
+    marginBottom: 8,
+  },
+
+  pickupCard: {
+    backgroundColor: colors.paleGreen,
+    borderWidth: 1,
+    borderColor: '#D4EAD9',
+    borderRadius: 20,
+    padding: 18,
+  },
+
+  pickupCardTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+
+  pickupStatus: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+
+  pickupArrow: {
+    color: colors.primary,
+    fontSize: 26,
+    fontWeight: '600',
+    lineHeight: 27,
+  },
+
+  pickupSchedule: {
+    color: colors.text,
+    fontSize: 17,
+    fontWeight: '800',
+    marginTop: 7,
+  },
+
+  pickupWaste: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 8,
+  },
+
+  pickupMore: {
+    color: colors.secondaryText,
+    fontSize: 12,
+    marginTop: 4,
+  },
+
+  pickupAddress: {
+    color: colors.secondaryText,
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 9,
+  },
+
+  pickupLink: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: '800',
+    marginTop: 12,
+  },
+
   emptyIcon: {
     width: 58,
     height: 58,
@@ -408,10 +494,17 @@ container: {
   backgroundColor: '#F5F8F6',
 },
 
-
 scrollContent: {
   flexGrow: 1,
   paddingBottom: 120,
+},
+
+refreshError: {
+  marginHorizontal: 20,
+  marginTop: 12,
+  color: '#A23B32',
+  fontSize: 13,
+  lineHeight: 18,
 },
 
 bottomNavContainer: {
@@ -494,11 +587,73 @@ navFeather: {
 },
 
 brandLogo: {
-  width: 103,
-  height: 34,
+  width: 130,
+  height: 38,
   flexShrink: 1,
 },
 
+truckImage: {
+  width: 100,
+  height: 100,
+},
+
+adSection: {
+  marginTop: 3,
+  marginBottom: 3,
+},
+
+adImage: {
+  height: 150,
+  borderRadius: 16,
+  backgroundColor: 'transparent',
+},
+
+adIndicators: {
+  flexDirection: 'row',
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginTop: 12,
+  gap: 6,
+},
+
+adDot: {
+  width: 6,
+  height: 6,
+  borderRadius: 3,
+  backgroundColor: '#CCD8CE',
+},
+
+adDotActive: {
+  width: 18,
+  backgroundColor: '#176744',
+},
+
+quickAccessImage: {
+  width: 48,
+  height: 48,
+},
+
+stickyHeader: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: colors.primary,
+  paddingHorizontal: 22,
+  paddingTop: 8,
+  paddingBottom: 12,
+  alignItems: 'flex-start',
+  justifyContent: 'center',
+  borderBottomLeftRadius: 26,
+  borderBottomRightRadius: 26,
+  zIndex: 1,
+  elevation: 0,
+},
+
+stickyBrandLogo: {
+  width: 130,
+  height: 38,
+},
 });
 
 export default styles;

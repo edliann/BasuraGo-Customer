@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import type { User } from 'firebase/auth';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -11,9 +12,15 @@ import {
   View,
 } from 'react-native';
 import { router } from 'expo-router';
+import { goBackOrReplace } from '@/navigation/back';
 
 import { registerCustomer } from '@/services/auth';
-import { provisionCustomer } from '@/services/customerAuth';
+import {
+  getCustomerOnboardingErrorCode,
+  getCustomerOnboardingErrorMessage,
+  isCustomerOnboardingError,
+  onboardCustomer,
+} from '@/services/customerAuth';
 
 interface PasswordRequirements {
   length: boolean;
@@ -111,6 +118,8 @@ export default function EmailSignupScreen() {
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [authenticatedUser, setAuthenticatedUser] =
+    useState<User | null>(null);
 
   const requirements = useMemo(
     () => getPasswordRequirements(password),
@@ -169,39 +178,33 @@ export default function EmailSignupScreen() {
     try {
       setLoading(true);
 
-      const user = await registerCustomer(
+      const user = authenticatedUser ?? await registerCustomer(
         email,
         password,
         fullName,
       );
 
-      await provisionCustomer(user);
+      setAuthenticatedUser(user);
+      await onboardCustomer(user);
 
       router.replace('/');
-    } catch (error: any) {
-      console.error(
-        'Customer registration error:',
-        error,
-      );
+    } catch (error: unknown) {
+      const code = getCustomerOnboardingErrorCode(error);
+      if (__DEV__) {
+        console.error('[Email signup] failed', { code });
+      }
 
-      if (
-        error?.code ===
-        'auth/email-already-in-use'
-      ) {
+      if (authenticatedUser || isCustomerOnboardingError(error)) {
+        setErrorMessage(getCustomerOnboardingErrorMessage(error));
+      } else if (code === 'auth/email-already-in-use') {
         setErrorMessage(
           'An account with this email already exists.',
         );
-      } else if (
-        error?.code ===
-        'auth/invalid-email'
-      ) {
+      } else if (code === 'auth/invalid-email') {
         setErrorMessage(
           'Please enter a valid email address.',
         );
-      } else if (
-        error?.code ===
-        'auth/weak-password'
-      ) {
+      } else if (code === 'auth/weak-password') {
         setErrorMessage(
           'Firebase rejected this password as too weak.',
         );
@@ -231,7 +234,7 @@ export default function EmailSignupScreen() {
       >
         <Pressable
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => goBackOrReplace('/signup')}
         >
           <Text style={styles.backText}>‹</Text>
         </Pressable>

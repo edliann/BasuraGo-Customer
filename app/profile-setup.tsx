@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -12,6 +12,13 @@ import { router } from 'expo-router';
 
 import LoadingScreen from '@/components/LoadingScreen';
 import { useAuth } from '@/contexts/AuthContext';
+import { logoutCustomer } from '@/services/auth';
+import {
+  getCustomerOnboardingErrorCode,
+  getCustomerOnboardingErrorMessage,
+  isCustomerOnboardingError,
+  onboardCustomer,
+} from '@/services/customerAuth';
 import { completeCustomerOnboarding } from '@/services/customerProfile';
 
 interface Country {
@@ -146,6 +153,7 @@ function normalizePhoneNumber(
 export default function ProfileSetupScreen() {
   const { firebaseUser, loading: authLoading } =
     useAuth();
+  const switchingAccount = useRef(false);
 
   const [fullName, setFullName] = useState(
     firebaseUser?.displayName?.trim() || '',
@@ -169,9 +177,32 @@ export default function ProfileSetupScreen() {
   }
 
   if (!firebaseUser) {
-    router.replace('/signup');
+    if (!switchingAccount.current) {
+      router.replace('/signup');
+    }
     return <LoadingScreen />;
   }
+
+  const handleSwitchAccount = async () => {
+    if (saving) return;
+
+    setErrorMessage('');
+    setSaving(true);
+    switchingAccount.current = true;
+
+    try {
+      await logoutCustomer();
+      router.replace('/login');
+    } catch (error) {
+      switchingAccount.current = false;
+      console.error('Failed to switch accounts:', error);
+      setErrorMessage(
+        'We could not sign you out. Please try again.',
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleContinue = async () => {
     const trimmedName = fullName.trim();
@@ -200,25 +231,28 @@ export default function ProfileSetupScreen() {
     setSaving(true);
 
     try {
-        await completeCustomerOnboarding(
+      // Retry the idempotent trusted operation before updating the profile.
+      await onboardCustomer(firebaseUser);
+
+      await completeCustomerOnboarding(
         firebaseUser.uid,
         {
-            fullName: trimmedName,
-            phoneNumber: normalizedPhone,
-            phoneCountryCode:
-            selectedCountry.dialCode,
+          fullName: trimmedName,
+          phoneNumber: normalizedPhone,
+          phoneCountryCode: selectedCountry.dialCode,
         },
-        );
+      );
 
       router.replace('/phone-verification');
     } catch (error) {
-      console.error(
-        'Failed to complete customer profile setup:',
-        error,
-      );
-
+      const code = getCustomerOnboardingErrorCode(error);
+      if (__DEV__) {
+        console.error('[Profile setup] save failed', { code });
+      }
       setErrorMessage(
-        'We could not save your profile. Please try again.',
+        isCustomerOnboardingError(error)
+          ? getCustomerOnboardingErrorMessage(error)
+          : 'We could not save your profile. Please try again.',
       );
     } finally {
       setSaving(false);
@@ -227,6 +261,29 @@ export default function ProfileSetupScreen() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Back to sign-in options"
+          onPress={() => router.replace('/signup')}
+          disabled={saving}
+          style={styles.backButton}
+        >
+          <Text style={styles.backText}>‹  Back</Text>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={handleSwitchAccount}
+          disabled={saving}
+          style={styles.switchAccountButton}
+        >
+          <Text style={styles.switchAccountText}>
+            {saving ? 'Signing out...' : 'Switch account'}
+          </Text>
+        </Pressable>
+      </View>
+
       <View style={styles.content}>
         <Text style={styles.title}>
           Complete your profile
@@ -386,11 +443,45 @@ export default function ProfileSetupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     padding: 24,
+    paddingTop: 55,
+  },
+
+  header: {
+    width: '100%',
+    maxWidth: 520,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  backButton: {
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+
+  backText: {
+    fontSize: 16,
+    color: '#1F6B3A',
+    fontWeight: '600',
+  },
+
+  switchAccountButton: {
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+
+  switchAccountText: {
+    fontSize: 14,
+    color: '#1F6B3A',
+    fontWeight: '600',
   },
 
   content: {
+    flex: 1,
+    justifyContent: 'center',
     width: '100%',
     maxWidth: 520,
     alignSelf: 'center',

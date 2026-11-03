@@ -1,9 +1,10 @@
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   TextInput,
@@ -19,6 +20,7 @@ import {
 } from '@/services/customerProfile';
 
 import { styles } from '@/styles/edit-profile.styles';
+import { goBackOrReplace } from '@/navigation/back';
 
 export default function EditProfileScreen() {
   const { firebaseUser, loading: authLoading } = useAuth();
@@ -29,6 +31,16 @@ export default function EditProfileScreen() {
 
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState('');
+  const profileRequestInFlight = useRef(false);
+  const profileSnapshot = useRef<{
+    fullName: string;
+    phoneNumber: string;
+    phoneCountryCode: string;
+  } | null>(null);
+  const formValues = useRef({ fullName, phoneNumber, phoneCountryCode });
+  formValues.current = { fullName, phoneNumber, phoneCountryCode };
 
   useEffect(() => {
     if (authLoading) return;
@@ -58,6 +70,11 @@ export default function EditProfileScreen() {
         setFullName(profile.fullName ?? '');
         setPhoneNumber(profile.phoneNumber ?? '');
         setPhoneCountryCode(profile.phoneCountryCode ?? '+63');
+        profileSnapshot.current = {
+          fullName: profile.fullName ?? '',
+          phoneNumber: profile.phoneNumber ?? '',
+          phoneCountryCode: profile.phoneCountryCode ?? '+63',
+        };
       } catch (error) {
         console.error('Failed to load customer profile:', error);
 
@@ -78,6 +95,58 @@ export default function EditProfileScreen() {
       mounted = false;
     };
   }, [authLoading, firebaseUser]);
+
+  const refreshProfile = useCallback(async () => {
+    if (!firebaseUser || saving || profileRequestInFlight.current) return;
+    const snapshot = profileSnapshot.current;
+    const current = formValues.current;
+    if (
+      !snapshot ||
+      current.fullName !== snapshot.fullName ||
+      current.phoneNumber !== snapshot.phoneNumber ||
+      current.phoneCountryCode !== snapshot.phoneCountryCode
+    ) {
+      setRefreshError('Save or discard your unsaved changes before refreshing your profile.');
+      return;
+    }
+
+    profileRequestInFlight.current = true;
+    setRefreshing(true);
+    setRefreshError('');
+    try {
+      const profile = await getCustomerProfile(firebaseUser.uid);
+      if (!profile) {
+        setRefreshError('Your saved profile could not be refreshed.');
+        return;
+      }
+
+      const next = {
+        fullName: profile.fullName ?? '',
+        phoneNumber: profile.phoneNumber ?? '',
+        phoneCountryCode: profile.phoneCountryCode ?? '+63',
+      };
+      const latest = formValues.current;
+      if (
+        latest.fullName !== snapshot.fullName ||
+        latest.phoneNumber !== snapshot.phoneNumber ||
+        latest.phoneCountryCode !== snapshot.phoneCountryCode
+      ) {
+        setRefreshError('Your form changed while refreshing. Your unsaved edits were preserved.');
+        return;
+      }
+
+      profileSnapshot.current = next;
+      setFullName(next.fullName);
+      setPhoneNumber(next.phoneNumber);
+      setPhoneCountryCode(next.phoneCountryCode);
+    } catch (error) {
+      console.error('Failed to refresh customer profile:', error);
+      setRefreshError('Your profile could not be refreshed. Your form was kept unchanged.');
+    } finally {
+      profileRequestInFlight.current = false;
+      setRefreshing(false);
+    }
+  }, [firebaseUser, saving]);
 
   const handleSave = async () => {
     if (!firebaseUser) return;
@@ -104,7 +173,7 @@ export default function EditProfileScreen() {
       Alert.alert('Profile updated', 'Your changes have been saved.', [
         {
           text: 'OK',
-          onPress: () => router.back(),
+          onPress: () => goBackOrReplace('/account'),
         },
       ]);
     } catch (error) {
@@ -136,10 +205,26 @@ export default function EditProfileScreen() {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => void refreshProfile()}
+            tintColor="#176744"
+            colors={['#176744']}
+          />
+        }
       >
+        {refreshError ? (
+          <Text
+            accessibilityRole="alert"
+            style={{ color: '#A23B32', fontSize: 13, lineHeight: 19, marginBottom: 12 }}
+          >
+            {refreshError}
+          </Text>
+        ) : null}
         <Pressable
           accessibilityRole="button"
-          onPress={() => router.back()}
+          onPress={() => goBackOrReplace('/account')}
           style={styles.backButton}
         >
           <Text style={styles.backButtonText}>‹  Back to Account</Text>
@@ -155,7 +240,10 @@ export default function EditProfileScreen() {
           <Text style={styles.label}>Full name</Text>
           <TextInput
             value={fullName}
-            onChangeText={setFullName}
+            onChangeText={(value) => {
+              setFullName(value);
+              setRefreshError('');
+            }}
             placeholder="Enter your full name"
             autoCapitalize="words"
             autoCorrect={false}
@@ -166,7 +254,10 @@ export default function EditProfileScreen() {
           <Text style={styles.label}>Phone number</Text>
           <TextInput
             value={phoneNumber}
-            onChangeText={setPhoneNumber}
+            onChangeText={(value) => {
+              setPhoneNumber(value);
+              setRefreshError('');
+            }}
             placeholder="+639171234567"
             keyboardType="phone-pad"
             editable={!saving}
@@ -195,7 +286,7 @@ export default function EditProfileScreen() {
           <Pressable
             accessibilityRole="button"
             disabled={saving}
-            onPress={() => router.back()}
+            onPress={() => goBackOrReplace('/account')}
             style={styles.cancelButton}
           >
             <Text style={styles.cancelButtonText}>Cancel</Text>

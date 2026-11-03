@@ -1,12 +1,15 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { goBackOrReplace } from '@/navigation/back';
 
 export default function AuthMethodsScreen() {
   return (
     <View style={styles.container}>
       <Pressable
         style={styles.backButton}
-        onPress={() => router.back()}
+        accessibilityRole="button"
+        accessibilityLabel="Back to sign-up"
+        onPress={() => goBackOrReplace('/signup')}
       >
         <Text style={styles.backText}>‹</Text>
       </Pressable>
@@ -33,20 +36,6 @@ export default function AuthMethodsScreen() {
           </Text>
         </Pressable>
 
-        <Pressable
-          style={styles.methodButton}
-          onPress={() => {
-            // Phone authentication will be implemented next.
-          }}
-        >
-          <Text style={styles.methodTitle}>
-            Continue with Phone
-          </Text>
-
-          <Text style={styles.methodDescription}>
-            Verify your phone number with a one-time code.
-          </Text>
-        </Pressable>
       </View>
 
       <View style={styles.bottom}>

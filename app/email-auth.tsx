@@ -1,12 +1,15 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { goBackOrReplace } from '@/navigation/back';
 
 export default function EmailAuthScreen() {
   return (
     <View style={styles.container}>
       <Pressable
         style={styles.backButton}
-        onPress={() => router.back()}
+        accessibilityRole="button"
+        accessibilityLabel="Back to sign-in options"
+        onPress={() => goBackOrReplace('/signup')}
       >
         <Text style={styles.backText}>‹</Text>
       </Pressable>

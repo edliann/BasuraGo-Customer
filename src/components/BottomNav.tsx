@@ -1,20 +1,18 @@
 
 import { router, usePathname } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import RemixIcon from 'react-native-remix-icon';
-import type { IconName } from 'react-native-remix-icon';
 
 import styles from './BottomNav.styles';
 
 function NavItem({
   label,
-  icon,
+  image,
   active,
   onPress,
 }: {
   label: string;
-  icon: IconName;
+  image: number;
   active: boolean;
   onPress: () => void;
 }) {
@@ -35,10 +33,11 @@ function NavItem({
           active && styles.navIconWrapActive,
         ]}
       >
-        <RemixIcon
-          name={icon}
-          size={23}
-          color={active ? '#176744' : '#8B9690'}
+        <Image
+          source={image}
+          style={[styles.navImage, !active && styles.navImageInactive]}
+          resizeMode="contain"
+          accessible={false}
         />
       </View>
 
@@ -56,6 +55,7 @@ function NavItem({
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const isOrdersRoute = pathname.startsWith('/orders');
 
   return (
     <View style={styles.bottomNavContainer}>
@@ -73,23 +73,29 @@ export default function BottomNav() {
       <View style={styles.bottomNav}>
         <NavItem
           label="Home"
-          icon="home-5-line"
+          image={require('../../assets/bottomNav/home-icon.png')}
           active={pathname === '/home'}
-          onPress={() => router.replace('/home')}
+          onPress={() => {
+            if (pathname !== '/home') router.replace('/home');
+          }}
         />
 
         <NavItem
           label="Orders"
-          icon="file-list-3-line"
-          active={pathname.startsWith('/orders')}
-          onPress={() => router.push('/orders')}
+          image={require('../../assets/bottomNav/orders-icon.png')}
+          active={isOrdersRoute}
+          onPress={() => {
+            if (!isOrdersRoute) router.replace('/orders');
+          }}
         />
 
         <NavItem
           label="Account"
-          icon="user-3-line"
+          image={require('../../assets/bottomNav/account-icon.png')}
           active={pathname === '/account'}
-          onPress={() => router.replace('/account')}
+          onPress={() => {
+            if (pathname !== '/account') router.replace('/account');
+          }}
         />
       </View>
     </View>

@@ -11,6 +11,12 @@ export const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 120,
   },
+  refreshError: {
+    color: '#A23B32',
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 12,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -178,48 +184,6 @@ export const styles = StyleSheet.create({
   },
 
 
-bottomNavContainer: {
-  position: 'absolute',
-  bottom: 12,
-  left: 18,
-  right: 18,
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-around',
-  paddingVertical: 12,
-  paddingHorizontal: 8,
-  backgroundColor: 'rgba(255,255,255,0.96)',
-  borderRadius: 26,
-  borderWidth: 1,
-  borderColor: '#DCE8DE',
-  elevation: 8,
-  shadowColor: '#173D2C',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.10,
-  shadowRadius: 12,
-  zIndex: 10,
-},
-navItem: {
-  flex: 1,
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 4,
-  paddingVertical: 2,
-},
-navIcon: {
-  color: '#849187',
-  fontSize: 23,
-  fontWeight: '700',
-},
-navLabel: {
-  color: '#849187',
-  fontSize: 11,
-  fontWeight: '600',
-},
-activeNav: {
-  color: '#176744',
-  fontWeight: '800',
-},
 menuIconImage: {
   width: 26,
   height: 26,
